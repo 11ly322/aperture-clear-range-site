@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080b09" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <title>光圈、弥散圆与景深 · 互动光学实验</title>
+    <meta
+      name="description"
+      content="从八年级物理的凸透镜会聚出发，配合弥散圆、物理孔径、超焦距和景深公式，解释为什么光圈越大，清晰范围越小。"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="optics.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#lab">跳到动手实验</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a
+          class="brand"
+          href="#top"
+          aria-label="光圈小实验 凸透镜 · 弥散圆 · 景深，回到顶部"
+        >
+          <svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <circle cx="20" cy="20" r="16.5" stroke="currentColor" stroke-width="1" />
+            <circle cx="20" cy="20" r="6.2" stroke="currentColor" stroke-width="1.4" />
+            <path
+              d="M20 3.5 27.7 15H15.2L20 3.5ZM36.5 20l-7.7 11.5H17.6L30 24.2 36.5 20ZM11.9 36.5 20 24.9l4.6 11.6H11.9ZM3.5 14.9 11 3.5l2.7 11.6-10.2-.2Z"
+              stroke="currentColor"
+              stroke-width="0.75"
+              opacity=".42"
+            />
+          </svg>
+          <span class="brand-copy">
+            <span class="brand-name">光圈小实验</span>
+            <span class="brand-sub">凸透镜 · 弥散圆 · 景深</span>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="主导航">
+          <a href="#lab">动手实验</a>
+          <a href="#knowledge">知识卡</a>
+          <a href="#advanced">进阶公式</a>
+        </nav>
+
+        <p class="header-status">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>交互演示</span>
+        </p>
+      </div>
+      <div class="scroll-progress" aria-hidden="true">
+        <span id="scrollProgress"></span>
+      </div>
+    </header>
+
+    <main class="page-shell" id="top">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="eyebrow-rule" aria-hidden="true"></span>
+            八年级物理 · 透镜与光圈
+          </p>
+          <h1 id="page-title">
+            光圈越大，<br />
+            <span class="accent">清晰范围</span>越小。
+          </h1>
+          <p class="lede">
+            镜头像一块凸透镜，把光会聚到传感器上。光圈越大，通过的光束越粗；稍微偏离对焦平面，弥散圆就会变大，看起来更模糊。
+          </p>
+          <div class="hero-foot">
+            <a class="start-link" href="#lab">开始动手 <span aria-hidden="true">↓</span></a>
+            <p class="spec-line" aria-label="本次实验的关键词">
+              <span>凸透镜会聚</span>
+              <span>物理孔径 D</span>
+              <span>弥散圆 c</span>
+              <span>景深 DoF</span>
+            </p>
+          </div>
+        </div>
+
+        <aside class="answer-card" aria-label="一句话理解">
+          <div class="answer-top">
+            <span>一句话理解</span>
+            <span class="mono">先看结论</span>
+          </div>
+          <p class="answer-quote">
+            光圈越大，<br />
+            通过镜头的光束<em>越粗</em>；<br />
+            偏离对焦，光斑就更大。
+          </p>
+          <div class="answer-chain" aria-label="从光圈到景深的关系">
+            <div>
+              <span>通过的光束</span>
+              <strong>更粗</strong>
+            </div>
+            <i aria-hidden="true">→</i>
+            <div>
+              <span>弥散圆 c</span>
+              <strong>更大</strong>
+            </div>
+            <i aria-hidden="true">→</i>
+            <div>
+              <span>景深 DoF</span>
+              <strong>更窄</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="workbench" id="lab" aria-labelledby="lab-title">
+        <div class="stage-card">
+          <header class="stage-head">
+            <div class="stage-title">
+              <span class="stage-led" aria-hidden="true"></span>
+              <h2 id="lab-title">光线路径</h2>
+              <span class="stage-tag">2D · 非等比</span>
+            </div>
+            <p class="stage-meta">50 mm · 全画幅 · c₀ 0.03 mm</p>
+          </header>
+
+          <div class="canvas-wrap">
+            <canvas
+              id="rayCanvas"
+              role="img"
+              aria-labelledby="canvasSummary"
+              aria-describedby="canvasHint"
+            ></canvas>
+            <p class="sr-only" id="canvasSummary">
+              一幅侧视光路示意图。可以用页面中的滑块和按钮改变光圈、对焦距离与观察对象。
+            </p>
+            <p class="sr-only" id="canvasHint">
+              点击图中的光点可以切换观察对象，拖动下方的对焦刻度可以改变对焦距离。所有操作也都能用页面中的控制台完成。
+            </p>
+          </div>
+
+          <footer class="stage-foot">
+            <div class="stage-legend" aria-label="图例">
+              <span class="legend-item">
+                <i class="legend-swatch legend-swatch--dof" aria-hidden="true"></i>
+                景深
+              </span>
+              <span class="legend-item">
+                <i class="legend-swatch legend-swatch--focus" aria-hidden="true"></i>
+                对焦面
+              </span>
+              <span class="legend-item">
+                <i class="legend-swatch legend-swatch--ray" aria-hidden="true"></i>
+                追踪光线
+              </span>
+            </div>
+            <p class="stage-help">点光点切换 <span aria-hidden="true">/</span> 拖刻度对焦</p>
+          </footer>
+        </div>
+
+        <aside class="controls" aria-labelledby="controls-title">
+          <header class="controls-head">
+            <div>
+              <p class="section-label">动手实验</p>
+              <h2 id="controls-title">调整光圈，看看变化</h2>
+            </div>
+            <button class="reset-button" id="resetButton" type="button" aria-label="恢复初始设置">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </header>
+
+          <div class="control-block aperture-block">
+            <div class="control-label">
+              <label for="apertureRange"><b>01</b> 调节光圈</label>
+              <span class="mono">f/1.4 — f/22</span>
+            </div>
+            <div class="aperture-display">
+              <p class="f-value">
+                <span>f/</span><output id="fStopOutput" for="apertureRange">2.8</output>
+              </p>
+              <p class="aperture-hint">
+                <span>f 值越小</span>
+                <strong>光圈越大</strong>
+              </p>
+            </div>
+            <input
+              class="range"
+              id="apertureRange"
+              type="range"
+              min="0"
+              max="9"
+              step="1"
+              value="3"
+              aria-valuetext="f/2.8，f 值越小光圈越大"
+            />
+            <div class="range-ends" aria-hidden="true">
+              <span>开大 · 清晰范围更窄</span>
+              <span>收小 · 清晰范围更宽</span>
+            </div>
+          </div>
+
+          <div class="control-block">
+            <div class="control-label">
+              <label for="focusRange"><b>02</b> 选择对焦距离</label>
+              <output class="inline-output" id="focusOutput" for="focusRange">2.8 m</output>
+            </div>
+            <input
+              class="range"
+              id="focusRange"
+              type="range"
+              min="1"
+              max="8"
+              step="0.1"
+              value="2.8"
+              aria-valuetext="对焦距离 2.8 米"
+            />
+            <div class="range-ends" aria-hidden="true">
+              <span>1 m</span>
+              <span>8 m</span>
+            </div>
+          </div>
+
+          <div class="dof-block">
+            <div class="dof-title">
+              <span><b>03</b> 景深 DoF（清晰范围）</span>
+              <span class="dof-state" id="dofState">窄</span>
+            </div>
+            <p class="dof-hero">
+              <output id="dofTotal">0.52</output><span>m</span>
+            </p>
+            <div class="dof-bounds">
+              <span>近界 u<sub>n</sub> <output id="nearLimit">2.56 m</output></span>
+              <i aria-hidden="true"></i>
+              <span>远界 u<sub>f</sub> <output id="farLimit">3.09 m</output></span>
+            </div>
+            <p class="criterion">清晰判据：c ≤ c₀ = 0.03 mm</p>
+          </div>
+
+          <div class="blur-panel" id="blurPanel" data-state="out">
+            <div class="blur-visual" aria-hidden="true">
+              <span class="blur-ring"></span>
+              <span class="blur-disc" id="blurDisc"></span>
+              <span class="blur-caption">CoC</span>
+            </div>
+            <div class="blur-copy">
+              <div class="blur-title-row">
+                <span>当前物体 <strong id="trackedName">近处</strong></span>
+                <span class="state-chip" id="blurState">模糊</span>
+              </div>
+              <p class="blur-reading">
+                弥散圆 c <output id="blurValue">0.13</output><span>mm</span>
+              </p>
+              <p class="blur-explainer" id="blurExplainer">
+                c / c₀ = 4.3，已经超出允许弥散圆。
+              </p>
+            </div>
+          </div>
+
+          <div class="tech-inline" aria-label="当前进阶读数">
+            <span><b>D</b> <output id="techDiameter">17.9</output> mm</span>
+            <span><b>v</b> <output id="techImage">51.28</output> mm</span>
+            <span><b>v<sub>f</sub></b> <output id="techFocusImage">50.91</output> mm</span>
+            <span><b>H</b> <output id="techHyperfocal">29.8</output> m</span>
+            <a href="#advanced">公式 ↓</a>
+          </div>
+
+          <div class="subject-block">
+            <div class="control-label">
+              <span>看哪个物体的光线？</span>
+              <span class="mono">点一下切换</span>
+            </div>
+            <div class="subject-switch" role="group" aria-label="选择追踪的物体">
+              <button
+                class="subject-button"
+                type="button"
+                data-subject="0"
+                style="--subject: #ff9b7a"
+                aria-pressed="true"
+              >
+                <span class="subject-dot" aria-hidden="true"></span>
+                <span class="subject-name">近处<small>2.0 m</small></span>
+              </button>
+              <button
+                class="subject-button"
+                type="button"
+                data-subject="1"
+                style="--subject: #eef2df"
+                aria-pressed="false"
+              >
+                <span class="subject-dot" aria-hidden="true"></span>
+                <span class="subject-name">主体<small>2.8 m</small></span>
+              </button>
+              <button
+                class="subject-button"
+                type="button"
+                data-subject="2"
+                style="--subject: #7fc7ff"
+                aria-pressed="false"
+              >
+                <span class="subject-dot" aria-hidden="true"></span>
+                <span class="subject-name">远处<small>4.5 m</small></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="preset-row">
+            <button class="preset" type="button" data-aperture-index="1">
+              大光圈 <span>f/1.8 · 清晰范围更窄</span>
+            </button>
+            <button class="preset" type="button" data-aperture-index="8">
+              小光圈 <span>f/16 · 清晰范围更宽</span>
+            </button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="knowledge" id="knowledge" aria-labelledby="knowledge-title">
+        <div class="knowledge-heading">
+          <p class="eyebrow">
+            <span class="eyebrow-rule" aria-hidden="true"></span>
+            知识卡 · 八年级物理
+          </p>
+          <div class="knowledge-title-row">
+            <h2 id="knowledge-title">光线怎么走，<br />清晰范围就怎么变。</h2>
+            <p class="knowledge-lede">
+              不用公式。只要看懂凸透镜的会聚、光圈和光斑，就能解释这个现象。
+            </p>
+          </div>
+        </div>
+
+        <div class="knowledge-grid">
+          <article class="knowledge-card">
+            <div class="card-top">
+              <span class="card-index">知识卡 01</span>
+              <span class="card-tag">凸透镜</span>
+            </div>
+            <figure class="card-figure">
+              <svg viewBox="0 0 480 140" role="img" aria-label="平行光通过凸透镜后会聚到一点">
+                <line class="d-axis" x1="24" y1="70" x2="456" y2="70" />
+                <path
+                  class="d-lens"
+                  d="M230 12 C207 40 207 100 230 128 C253 100 253 40 230 12Z"
+                />
+                <g class="d-rays">
+                  <path d="M40 30 H230 L402 70" />
+                  <path d="M40 50 H230 L402 70" />
+                  <path d="M40 90 H230 L402 70" />
+                  <path d="M40 110 H230 L402 70" />
+                </g>
+                <circle class="d-point" cx="402" cy="70" r="4.5" />
+                <text class="d-label d-label-strong" x="230" y="136" text-anchor="middle">凸透镜</text>
+                <text class="d-label" x="402" y="54" text-anchor="middle">会聚点</text>
+              </svg>
+            </figure>
+            <h3>镜头像一块凸透镜</h3>
+            <p>
+              凸透镜对光有<strong>会聚作用</strong>。景物反射的光进入镜头后，会向中间收拢，寻找自己的会聚点。
+            </p>
+            <p class="card-key"><span>记住</span>光线穿过镜头，会向中间会聚。</p>
+          </article>
+
+          <article class="knowledge-card">
+            <div class="card-top">
+              <span class="card-index">知识卡 02</span>
+              <span class="card-tag">光圈</span>
+            </div>
+            <figure class="card-figure">
+              <svg viewBox="0 0 480 140" role="img" aria-label="大光圈开孔大，小光圈开孔小">
+                <g>
+                  <circle class="d-lens-fill" cx="130" cy="60" r="40" />
+                  <circle class="d-aperture" cx="130" cy="60" r="24" />
+                  <text class="d-label d-label-strong" x="130" y="122" text-anchor="middle">
+                    大光圈 · 光束更粗
+                  </text>
+                </g>
+                <g>
+                  <circle class="d-lens-fill" cx="350" cy="60" r="40" />
+                  <circle class="d-aperture d-aperture-small" cx="350" cy="60" r="8" />
+                  <text class="d-label d-label-strong" x="350" y="122" text-anchor="middle">
+                    小光圈 · 光束更细
+                  </text>
+                </g>
+              </svg>
+            </figure>
+            <h3>光圈像一扇可大可小的窗</h3>
+            <p>
+              f 值是相机上表示光圈大小的刻度。f 值越小，光圈开得越大，通过镜头的光束越粗；f 值越大，光圈收得越小，光束越细。
+            </p>
+            <p class="card-key"><span>记住</span>f 值小 → 光圈大 → 光束粗。</p>
+          </article>
+
+          <article class="knowledge-card">
+            <div class="card-top">
+              <span class="card-index">知识卡 03</span>
+              <span class="card-tag">对焦</span>
+            </div>
+            <figure class="card-figure">
+              <svg viewBox="0 0 480 140" role="img" aria-label="对焦时是光点，偏离对焦时是一个光斑">
+                <line class="d-divider" x1="240" y1="12" x2="240" y2="128" />
+                <g>
+                  <line class="d-axis" x1="14" y1="64" x2="224" y2="64" />
+                  <ellipse class="d-lens" cx="80" cy="64" rx="14" ry="42" />
+                  <circle class="d-point" cx="18" cy="32" r="3.5" />
+                  <path class="d-beam" d="M18 32 L80 24 L80 104 Z" />
+                  <path class="d-rays" d="M18 32 L80 24 L186 64" />
+                  <path class="d-rays" d="M18 32 L80 104 L186 64" />
+                  <line class="d-sensor" x1="186" y1="18" x2="186" y2="110" />
+                  <circle class="d-point" cx="186" cy="64" r="4" />
+                  <text class="d-label d-label-strong" x="120" y="130" text-anchor="middle">
+                    正好对焦：一个点
+                  </text>
+                </g>
+                <g transform="translate(240 0)">
+                  <line class="d-axis" x1="14" y1="64" x2="224" y2="64" />
+                  <ellipse class="d-lens" cx="80" cy="64" rx="14" ry="42" />
+                  <circle class="d-point" cx="18" cy="32" r="3.5" />
+                  <path class="d-beam" d="M18 32 L80 24 L80 104 Z" />
+                  <path class="d-rays" d="M18 32 L80 24 L196 64" />
+                  <path class="d-rays" d="M18 32 L80 104 L196 64" />
+                  <line class="d-sensor" x1="154" y1="18" x2="154" y2="110" />
+                  <line class="d-blur" x1="154" y1="47" x2="154" y2="81" />
+                  <text class="d-label d-label-strong" x="120" y="130" text-anchor="middle">
+                    偏离对焦：一个光斑
+                  </text>
+                </g>
+              </svg>
+            </figure>
+            <h3>对焦：让光正好聚在传感器上</h3>
+            <p>
+              传感器是相机里记录光线的部件。物体处于对焦位置时，传感器上得到一个清楚的<strong>像点</strong>。传感器若在会聚点前面或后面，截到的就是一个有大小、看起来发虚的光斑。
+            </p>
+            <p class="card-key"><span>记住</span>光斑越大，看起来就越模糊。</p>
+          </article>
+
+          <article class="knowledge-card">
+            <div class="card-top">
+              <span class="card-index">知识卡 04</span>
+              <span class="card-tag">清晰范围</span>
+            </div>
+            <figure class="card-figure">
+              <svg viewBox="0 0 480 140" role="img" aria-label="同样偏离对焦时，大光圈形成大光斑，小光圈形成小光斑">
+                <line class="d-divider" x1="240" y1="12" x2="240" y2="128" />
+                <g>
+                  <line class="d-axis" x1="14" y1="64" x2="228" y2="64" />
+                  <circle class="d-point" cx="18" cy="30" r="3.5" />
+                  <ellipse class="d-lens" cx="78" cy="64" rx="13" ry="42" />
+                  <path class="d-beam" d="M18 30 L78 35 L78 93 Z" />
+                  <path class="d-rays" d="M18 30 L78 35 L198 64" />
+                  <path class="d-rays" d="M18 30 L78 93 L198 64" />
+                  <line class="d-sensor" x1="158" y1="18" x2="158" y2="110" />
+                  <line class="d-blur" x1="158" y1="45" x2="158" y2="82" />
+                  <text class="d-label d-label-strong" x="126" y="130" text-anchor="middle">
+                    大光圈：光斑大
+                  </text>
+                </g>
+                <g transform="translate(240 0)">
+                  <line class="d-axis" x1="14" y1="64" x2="228" y2="64" />
+                  <circle class="d-point" cx="18" cy="30" r="3.5" />
+                  <ellipse class="d-lens" cx="78" cy="64" rx="13" ry="42" />
+                  <path class="d-beam" d="M18 30 L78 55 L78 73 Z" />
+                  <path class="d-rays" d="M18 30 L78 55 L198 64" />
+                  <path class="d-rays" d="M18 30 L78 73 L198 64" />
+                  <line class="d-sensor" x1="158" y1="18" x2="158" y2="110" />
+                  <line class="d-blur d-blur--small" x1="158" y1="57" x2="158" y2="70" />
+                  <text class="d-label d-label-strong" x="126" y="130" text-anchor="middle">
+                    小光圈：光斑小
+                  </text>
+                </g>
+              </svg>
+            </figure>
+            <h3>光束越粗，越怕“对不准”</h3>
+            <p>
+              同样只偏离一点，粗光束在传感器上形成的光斑更大，更容易模糊；细光束的光斑更小，前后更宽的一段距离都还算清楚。
+            </p>
+            <p class="card-key"><span>记住</span>大光圈让光斑长得快，清晰范围就更窄。</p>
+          </article>
+        </div>
+
+        <article class="conclusion-card">
+          <div class="card-top">
+            <span class="card-index">把四张卡连起来</span>
+            <span class="card-tag">结论</span>
+          </div>
+          <div class="conclusion-grid">
+            <div>
+              <h3>不是对焦面变小，<br />是清晰范围变窄。</h3>
+              <p>
+                光圈不会移动对焦位置。它改变的是通过镜头的光束粗细，因此改变了“稍微偏离对焦后，光斑变大的速度”。
+              </p>
+              <p class="conclusion-note">
+                平时说“光圈越大，焦平面越小”，更准确的说法是：<strong>大光圈让景深（清晰范围）变窄。</strong>
+              </p>
+            </div>
+            <div class="conclusion-chain" aria-label="光圈、光斑与清晰范围的关系">
+              <div>
+                <span>光圈开大</span>
+                <strong>光束更粗</strong>
+              </div>
+              <i aria-hidden="true">→</i>
+              <div>
+                <span>偏离对焦</span>
+                <strong>光斑更大</strong>
+              </div>
+              <i aria-hidden="true">→</i>
+              <div>
+                <span>结果</span>
+                <strong>清晰范围更窄</strong>
+              </div>
+            </div>
+          </div>
+          <div class="conclusion-foot">
+            <p>
+              约定：数值基于 50 mm 镜头、全画幅传感器和几何光学近似；光斑不超过 0.03 mm 视为清晰。
+            </p>
+            <div class="conclusion-links">
+              <a href="#advanced">查看公式与术语 <span aria-hidden="true">↓</span></a>
+              <a href="#lab">回到实验 <span aria-hidden="true">↑</span></a>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="advanced" id="advanced" aria-labelledby="advanced-title">
+        <div class="advanced-heading">
+          <p class="eyebrow">
+            <span class="eyebrow-rule" aria-hidden="true"></span>
+            进阶附录 · 几何光学
+          </p>
+          <div class="advanced-title-row">
+            <h2 id="advanced-title">把“模糊”写成公式。</h2>
+            <p class="advanced-lede">
+              选读。用薄透镜近似，从物距、像距推出弥散圆，再把 c = c₀ 解成景深的两个边界。本页取 50 mm 焦距、全画幅传感器，c₀ = 0.03 mm。
+            </p>
+          </div>
+        </div>
+
+        <div class="advanced-layout">
+          <div class="formula-stack">
+            <article class="adv-card">
+              <header class="adv-head">
+                <span>01 · 薄透镜成像</span>
+                <span>THIN LENS</span>
+              </header>
+              <h3>先确定像点</h3>
+              <p
+                class="adv-equation"
+                role="math"
+                aria-label="一分之 f 等于一分之 u 加一分之 v"
+              >
+                1/<var>f</var> = 1/<var>u</var> + 1/<var>v</var>
+              </p>
+              <p class="adv-text">
+                <var>f</var> 是焦距，<var>u</var> 是物距，<var>v</var> 是像距。相机对焦在
+                <var>s</var> 时，传感器位于对应的对焦像距
+                <var>v</var><sub>f</sub> 上。
+              </p>
+              <p
+                class="adv-equation adv-equation--small"
+                role="math"
+                aria-label="对焦像距 vf 等于 f 乘 s 除以 s 减 f"
+              >
+                <var>v</var><sub>f</sub> = <var>f</var><var>s</var> / (<var>s</var> − <var>f</var>)
+              </p>
+              <dl class="adv-defs">
+                <div><dt>f</dt><dd>焦距，本页固定 50 mm</dd></div>
+                <div><dt>s</dt><dd>对焦距离（物方）</dd></div>
+                <div><dt>u</dt><dd>被摄体物距</dd></div>
+                <div><dt>v · v<sub>f</sub></dt><dd>像距 / 对焦像距</dd></div>
+              </dl>
+            </article>
+
+            <article class="adv-card adv-card--key">
+              <header class="adv-head">
+                <span>02 · 离焦弥散圆</span>
+                <span>CIRCLE OF CONFUSION</span>
+              </header>
+              <h3>传感器截到多宽？</h3>
+              <p
+                class="adv-equation"
+                role="math"
+                aria-label="弥散圆直径 c 等于物理孔径 D 乘以像距与对焦像距之差的绝对值，再除以像距 v"
+              >
+                <span class="eq-c">c</span> = <span class="eq-d">D</span> ·
+                |<var>v</var> − <var>v</var><sub>f</sub>| / <var>v</var>
+              </p>
+              <p class="adv-text">
+                <span class="eq-d">D</span> 是物理孔径，<span class="eq-d">D</span> =
+                <var>f</var>/<var>N</var>；<var>N</var> 是 f 值。物距和对焦距离固定时，
+                弥散圆直径 <span class="eq-c">c</span> 与
+                <span class="eq-d">D</span> 成正比。
+              </p>
+              <p
+                class="adv-equation adv-equation--small"
+                role="math"
+                aria-label="D 等于 f 除以 N，所以 c 正比于 N 分之一"
+              >
+                <span class="eq-d">D</span> = <var>f</var> / <var>N</var>
+                <span class="eq-arrow">⇒</span>
+                <span class="eq-c">c</span> ∝ 1/<var>N</var>
+              </p>
+              <dl class="adv-defs">
+                <div><dt>c</dt><dd>弥散圆直径</dd></div>
+                <div><dt>D</dt><dd>物理孔径 = f / N</dd></div>
+                <div><dt>N</dt><dd>f 值（光圈刻度）</dd></div>
+                <div><dt>v<sub>f</sub></dt><dd>传感器当前像距</dd></div>
+              </dl>
+              <p class="adv-callout">
+                关键关系：大光圈 = 小 <var>N</var> = 大 <var>D</var> = 大
+                <span class="eq-c">c</span>。这就是“大光圈景深浅”的几何原因。
+              </p>
+            </article>
+
+            <article class="adv-card">
+              <header class="adv-head">
+                <span>03 · 超焦距与景深</span>
+                <span>HYPERFOCAL / DOF</span>
+              </header>
+              <h3>令 c = c₀，解出两个边界</h3>
+              <div class="adv-equation-list">
+                <p
+                  class="adv-equation adv-equation--small"
+                  role="math"
+                  aria-label="超焦距 H 等于 f 的平方除以 N 乘 c0，再加 f"
+                >
+                  <var>H</var> = <var>f</var>² / (<var>N</var><var>c</var><sub>0</sub>) +
+                  <var>f</var>
+                </p>
+                <p
+                  class="adv-equation adv-equation--small"
+                  role="math"
+                  aria-label="景深近界 un 等于 s 乘 H 减 f，除以 H 加 s 减 2f"
+                >
+                  <var>u</var><sub>n</sub> = <var>s</var>(<var>H</var> − <var>f</var>) /
+                  (<var>H</var> + <var>s</var> − 2<var>f</var>)
+                </p>
+                <p
+                  class="adv-equation adv-equation--small"
+                  role="math"
+                  aria-label="景深远界 uf 等于 s 乘 H 减 f，除以 H 减 s；H 不大于 s 时为无穷远"
+                >
+                  <var>u</var><sub>f</sub> = <var>s</var>(<var>H</var> − <var>f</var>) /
+                  (<var>H</var> − <var>s</var>)
+                </p>
+                <p
+                  class="adv-equation adv-equation--small"
+                  role="math"
+                  aria-label="景深等于远界 uf 减近界 un"
+                >
+                  DoF = <var>u</var><sub>f</sub> − <var>u</var><sub>n</sub>
+                </p>
+              </div>
+              <p class="adv-text">
+                <var>H</var> 是超焦距。若 <var>s</var> &lt; <var>H</var>，远界有限；若
+                <var>s</var> ≥ <var>H</var>，远界为无穷远。公式内所有长度统一用 mm。
+              </p>
+              <dl class="adv-defs">
+                <div><dt>H</dt><dd>超焦距</dd></div>
+                <div><dt>u<sub>n</sub> · u<sub>f</sub></dt><dd>景深近界 / 远界</dd></div>
+                <div><dt>c<sub>0</sub></dt><dd>允许弥散圆，0.03 mm</dd></div>
+                <div><dt>DoF</dt><dd>景深 = u<sub>f</sub> − u<sub>n</sub></dd></div>
+              </dl>
+            </article>
+          </div>
+
+          <aside class="terms-board" aria-labelledby="terms-title">
+            <header class="terms-head">
+              <span>术语表</span>
+              <span>GLOSSARY</span>
+            </header>
+            <h3 id="terms-title">符号与概念</h3>
+            <p class="terms-intro">这些词在摄影、光学和本页计算里的含义。</p>
+            <dl class="terms-list">
+              <div>
+                <dt>对焦平面（物方）</dt>
+                <dd>
+                  场景中距离 <var>s</var> 的物平面；它的共轭像面就是传感器所在的像平面。光圈大小不会移动它。
+                </dd>
+              </div>
+              <div>
+                <dt>焦平面（像方）</dt>
+                <dd>
+                  对焦光线会聚的像平面；合焦时与传感器面重合。口语里的“焦平面”有时其实指传感器面。
+                </dd>
+              </div>
+              <div>
+                <dt>物理孔径 D</dt>
+                <dd>有效通光直径，<var>D</var> = <var>f</var> / <var>N</var>。</dd>
+              </div>
+              <div>
+                <dt>f 值 N</dt>
+                <dd>摄影里的光圈刻度，<var>N</var> = <var>f</var> / <var>D</var>；数值越小，光圈越大。</dd>
+              </div>
+              <div>
+                <dt>像距 v / v<sub>f</sub></dt>
+                <dd>物距 <var>u</var>、对焦距离 <var>s</var> 各自对应的像面位置。</dd>
+              </div>
+              <div>
+                <dt>弥散圆 c（CoC）</dt>
+                <dd>离焦物点在传感器上形成的圆形光斑直径；<span class="eq-c">c</span> 越大越模糊。</dd>
+              </div>
+              <div>
+                <dt>允许弥散圆 c₀</dt>
+                <dd>“看起来仍清晰”的光斑上限。本页按全画幅取 0.03 mm。</dd>
+              </div>
+              <div>
+                <dt>景深 DoF</dt>
+                <dd>满足 <span class="eq-c">c</span> ≤ <var>c</var><sub>0</sub> 的物距范围，即 <var>u</var><sub>n</sub> 到 <var>u</var><sub>f</sub> 之间。</dd>
+              </div>
+              <div>
+                <dt>超焦距 H</dt>
+                <dd>使景深远界为无穷远的最小对焦距离。</dd>
+              </div>
+              <div>
+                <dt>全画幅 FF</dt>
+                <dd>36 × 24 mm 传感器。不同画幅采用不同的 c₀，景深刻度不能直接套用。</dd>
+              </div>
+              <div>
+                <dt>薄透镜近似</dt>
+                <dd>把镜头视作理想薄透镜；忽略像差、衍射和镜头主平面间距。</dd>
+              </div>
+              <div>
+                <dt>衍射极限</dt>
+                <dd>光圈很小时，波动光学使光斑无法继续变小；圆孔衍射斑近似直径 2.44 λN。</dd>
+              </div>
+            </dl>
+            <p class="terms-note">
+              <strong>常见误称：</strong>“焦平面变小”把“面”和“深度范围”混在了一起。光圈不会移动对焦平面，只会让可接受的物距范围（景深）变窄。
+            </p>
+          </aside>
+        </div>
+
+        <div class="derivation">
+          <header class="derivation-head">
+            <span>推导链</span>
+            <span>DERIVATION</span>
+          </header>
+          <h3>从相似三角形到景深边界</h3>
+          <ol class="derivation-steps">
+            <li>
+              <span>01</span>
+              <h4>定位像点</h4>
+              <p>
+                由薄透镜公式 <var>v</var> = <var>f</var><var>u</var>/(<var>u</var> −
+                <var>f</var>)，把物距换成像距；对焦面 <var>s</var> 对应
+                <var>v</var><sub>f</sub>。
+              </p>
+            </li>
+            <li>
+              <span>02</span>
+              <h4>量出光斑</h4>
+              <p>
+                孔径两端的光线在像点会聚。传感器若在像点前 / 后，截出的光斑满足
+                <span class="eq-c">c</span>/<span class="eq-d">D</span> = |<var>v</var> −
+                <var>v</var><sub>f</sub>|/<var>v</var>。
+              </p>
+            </li>
+            <li>
+              <span>03</span>
+              <h4>解出景深</h4>
+              <p>
+                令 <span class="eq-c">c</span> = <var>c</var><sub>0</sub>，解出两个物距
+                <var>u</var><sub>n</sub>、<var>u</var><sub>f</sub>，两者之间就是景深。
+              </p>
+            </li>
+          </ol>
+        </div>
+
+        <aside class="advanced-note">
+          <strong>模型边界：</strong>
+          上述数值只考虑几何光学，采用 50 mm 薄透镜、全画幅和 c₀ = 0.03 mm。真实镜头的像差、衍射、对焦距离标定和焦距呼吸都会造成偏差。圆孔衍射斑的近似直径为 2.44 λN；取 λ ≈ 550 nm、N = 22 时约为 30 µm，已经与允许弥散圆同量级，所以极小光圈未必更清楚。画布中的距离和光线位移经过视觉放大，不按真实比例绘制。
+        </aside>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p class="footer-brand"><span aria-hidden="true">◉</span> 光圈小实验</p>
+        <p class="footer-note">八年级物理 · 凸透镜与清晰范围 · © 2026 11ly322 · All rights reserved.</p>
+        <a class="footer-top" href="#top">回到顶部 <span aria-hidden="true">↑</span></a>
+      </div>
+    </footer>
+
+    <noscript>
+      <p class="noscript">这个互动实验需要启用 JavaScript 才能计算光路与清晰范围。</p>
+    </noscript>
+  </body>
+</html>
