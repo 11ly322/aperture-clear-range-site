@@ -6,14 +6,21 @@
     <meta name="theme-color" content="#080b09" />
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        if (localStorage.getItem("aperture-motion") === "off") {
+          document.documentElement.classList.add("motion-off");
+        }
+      } catch (_) {}
+    </script>
     <title>光圈、弥散圆与景深 · 互动光学实验</title>
     <meta
       name="description"
       content="从八年级物理的凸透镜会聚出发，配合弥散圆、物理孔径、超焦距和景深公式，解释为什么光圈越大，清晰范围越小。"
     />
-    <link rel="stylesheet" href="styles.css" />
-    <script src="optics.js" defer></script>
-    <script src="app.js" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261029-5" />
+    <script src="optics.js?v=20261029-5" defer></script>
+    <script src="app.js?v=20261029-5" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#lab">跳到动手实验</a>
@@ -46,6 +53,17 @@
           <a href="#knowledge">知识卡</a>
           <a href="#advanced">进阶公式</a>
         </nav>
+
+        <button
+          class="motion-toggle"
+          id="motionToggle"
+          type="button"
+          aria-pressed="true"
+          title="关闭页面动效"
+        >
+          <span class="motion-toggle-dot" aria-hidden="true"></span>
+          <span id="motionToggleLabel">动效开</span>
+        </button>
 
         <p class="header-status">
           <span class="live-dot" aria-hidden="true"></span>

@@ -61,6 +61,8 @@
     blurExplainer: byId("blurExplainer"),
     fValue: document.querySelector(".f-value"),
     dofHero: document.querySelector(".dof-hero"),
+    motionToggle: byId("motionToggle"),
+    motionToggleLabel: byId("motionToggleLabel"),
     techDiameter: byId("techDiameter"),
     techImage: byId("techImage"),
     techFocusImage: byId("techFocusImage"),
@@ -90,8 +92,16 @@
   const pulseTimers = new WeakMap();
   const pulseQueues = new WeakMap();
 
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  let prefersReducedMotion = motionQuery.matches;
+  // Motion is a first-class site control. Do not silently disable the demo
+  // because an OS-level animation preference is present; the header toggle
+  // gives the visitor explicit control, and the choice is remembered.
+  let motionEnabled = true;
+  try {
+    motionEnabled = localStorage.getItem("aperture-motion") !== "off";
+  } catch (_) {
+    motionEnabled = true;
+  }
+  let revealInitialized = false;
   let motionTime = 0;
   let animationFrame = 0;
   let lastAnimationDraw = 0;
@@ -132,7 +142,7 @@
   }
 
   function pulseElement(element) {
-    if (!element || prefersReducedMotion) return;
+    if (!element || !motionEnabled) return;
     window.clearTimeout(pulseQueues.get(element));
     const queueTimer = window.setTimeout(() => {
       window.clearTimeout(pulseTimers.get(element));
@@ -356,7 +366,9 @@
   }
 
   function initReveal() {
-    if (prefersReducedMotion || !("IntersectionObserver" in window)) return;
+    if (!motionEnabled || !("IntersectionObserver" in window)) return;
+    if (revealInitialized) return;
+    revealInitialized = true;
     const selectors = [
       ".knowledge-heading",
       ".knowledge-card",
@@ -404,7 +416,7 @@
 
   function ensureCanvasMotion() {
     if (
-      prefersReducedMotion ||
+      !motionEnabled ||
       !stageVisible ||
       document.hidden ||
       !canvas ||
@@ -418,7 +430,7 @@
 
   function runCanvasMotion(timestamp) {
     animationFrame = 0;
-    if (prefersReducedMotion || !stageVisible || document.hidden) {
+    if (!motionEnabled || !stageVisible || document.hidden) {
       return;
     }
     if (timestamp - lastAnimationDraw >= 1000 / 30) {
@@ -455,23 +467,42 @@
       }
     });
 
-    const updateMotionPreference = (event) => {
-      prefersReducedMotion = event.matches;
-      if (prefersReducedMotion) {
-        stopCanvasMotion();
-        draw();
-      } else {
-        ensureCanvasMotion();
-      }
-    };
+    ensureCanvasMotion();
+  }
 
-    if (typeof motionQuery.addEventListener === "function") {
-      motionQuery.addEventListener("change", updateMotionPreference);
-    } else if (typeof motionQuery.addListener === "function") {
-      motionQuery.addListener(updateMotionPreference);
+  function syncMotionToggleUI() {
+    if (!el.motionToggle || !el.motionToggleLabel) return;
+    const action = motionEnabled ? "关闭页面动效" : "开启页面动效";
+    const visibleLabel = motionEnabled ? "动效开" : "动效关";
+    el.motionToggle.setAttribute("aria-pressed", String(motionEnabled));
+    el.motionToggle.setAttribute("aria-label", `${visibleLabel}，${action}`);
+    el.motionToggle.title = action;
+    el.motionToggleLabel.textContent = visibleLabel;
+    document.documentElement.classList.toggle("motion-off", !motionEnabled);
+  }
+
+  function setMotionEnabled(enabled, persist = true) {
+    motionEnabled = Boolean(enabled);
+    syncMotionToggleUI();
+
+    if (motionEnabled) {
+      initReveal();
+      ensureCanvasMotion();
+    } else {
+      stopCanvasMotion();
+      document.querySelectorAll(".reveal-target").forEach((element) => {
+        element.classList.add("is-inview");
+      });
+      draw();
     }
 
-    ensureCanvasMotion();
+    if (persist) {
+      try {
+        localStorage.setItem("aperture-motion", motionEnabled ? "on" : "off");
+      } catch (_) {
+        // localStorage can be unavailable in strict contexts.
+      }
+    }
   }
 
   function computeLayout(width, height) {
@@ -716,7 +747,7 @@
     const focusX = sceneDepthToX(state.focusM, l);
     ctx.save();
     ctx.setLineDash([5, 6]);
-    ctx.lineDashOffset = prefersReducedMotion ? 0 : -motionTime * 18;
+    ctx.lineDashOffset = !motionEnabled ? 0 : -motionTime * 18;
     ctx.strokeStyle = "rgba(217, 255, 115, 0.55)";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1035,7 +1066,7 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    if (!prefersReducedMotion) {
+    if (motionEnabled) {
       // Small packets of light travel along the bundle. They are decorative:
       // the static ray geometry and numeric readouts remain authoritative.
       const photonCount = l.compact ? 2 : 4;
@@ -1096,7 +1127,7 @@
     ctx.restore();
 
     // The blur spot where the cone crosses the sensor plane.
-    const spotPulse = prefersReducedMotion
+    const spotPulse = !motionEnabled
       ? 0.5
       : Math.sin(motionTime * 2.4) * 0.5 + 0.5;
     ctx.save();
@@ -1163,7 +1194,7 @@
       const ratio = Number.isFinite(analysis.blurRatio)
         ? analysis.blurRatio
         : 20;
-      const breathing = prefersReducedMotion
+      const breathing = !motionEnabled
         ? 0
         : (Math.sin(motionTime * 2 + index * 1.7) * 0.5 + 0.5) * 1.6;
       const haloRadius =
@@ -1192,7 +1223,7 @@
         );
         ctx.lineWidth = 1;
         ctx.setLineDash(isSelected ? [3, 3] : []);
-        ctx.lineDashOffset = isSelected && !prefersReducedMotion
+        ctx.lineDashOffset = isSelected && motionEnabled
           ? -motionTime * 12
           : 0;
         ctx.beginPath();
@@ -1489,7 +1520,7 @@
     ctx.fillRect(-3.7, -3.7, 7.4, 7.4);
     ctx.restore();
 
-    if (!prefersReducedMotion) {
+    if (motionEnabled) {
       const phase = (motionTime * 0.55) % 1;
       ctx.save();
       ctx.strokeStyle = `rgba(217, 255, 115, ${0.22 * (1 - phase)})`;
@@ -1721,6 +1752,13 @@
     refresh(true);
   });
 
+  el.motionToggle?.addEventListener("click", () => {
+    setMotionEnabled(!motionEnabled);
+    liveRegion.textContent = motionEnabled
+      ? "页面动效已开启。"
+      : "页面动效已关闭。";
+  });
+
   /* ————————————————————————————————
      Bootstrap
   ———————————————————————————————— */
@@ -1740,6 +1778,7 @@
 
   syncUI();
   uiReady = true;
+  syncMotionToggleUI();
   requestDraw();
   initScrollProgress();
   initReveal();
